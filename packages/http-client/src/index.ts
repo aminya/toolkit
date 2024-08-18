@@ -566,15 +566,15 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
-  getAgentDispatcher(serverUrl: string): ProxyAgent | undefined {
+  async getAgentDispatcher(serverUrl: string): Promise<ProxyAgent | undefined> {
     const parsedUrl = new URL(serverUrl)
     const proxyUrl = pm.getProxyUrl(parsedUrl)
     const useProxy = proxyUrl && proxyUrl.hostname
     if (!useProxy) {
-      return
+      return undefined
     }
 
-    return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
+    return await this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
   }
 
   private _prepareRequest(
@@ -709,7 +709,10 @@ export class HttpClient {
     return agent
   }
 
-  private _getProxyAgentDispatcher(parsedUrl: URL, proxyUrl: URL): ProxyAgent {
+  private async _getProxyAgentDispatcher(
+    parsedUrl: URL,
+    proxyUrl: URL
+  ): Promise<ProxyAgent> {
     let proxyAgent
 
     if (this._keepAlive) {
@@ -724,9 +727,9 @@ export class HttpClient {
     const usingSsl = parsedUrl.protocol === 'https:'
 
     // Lazy load ProxyAgent to avoid bundling all the undici
-    const ProxyAgent =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      require('undici/lib/proxy-agent') as typeof import('undici/types/proxy-agent').default
+    const ProxyAgent = (await import(
+      'undici/lib/proxy-agent'
+    )) as typeof import('undici/types/proxy-agent').default
 
     proxyAgent = new ProxyAgent({
       uri: proxyUrl.href,

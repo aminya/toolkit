@@ -1,7 +1,8 @@
 import * as http from 'http'
 import * as httpClient from '@actions/http-client'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
-import {ProxyAgent, fetch} from 'undici'
+import type ProxyAgent from 'undici/types/proxy-agent'
+import {fetch} from 'undici'
 
 export function getAuthString(
   token: string,
@@ -29,8 +30,11 @@ export function getProxyAgentDispatcher(
 }
 
 export function getProxyFetch(destinationUrl): typeof fetch {
-  const httpDispatcher = getProxyAgentDispatcher(destinationUrl)
+  let httpDispatcher: ProxyAgent | undefined
   const proxyFetch: typeof fetch = async (url, opts) => {
+    if (httpDispatcher === undefined) {
+      httpDispatcher = await getProxyAgentDispatcher(destinationUrl)
+    }
     return fetch(url, {
       ...opts,
       dispatcher: httpDispatcher
