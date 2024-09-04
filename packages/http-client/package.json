@@ -10,6 +10,7 @@
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/http-client",
   "license": "MIT",
   "main": "lib/index.js",
+  "module": "lib/esm/index.js",
   "types": "lib/index.d.ts",
   "directories": {
     "lib": "lib",
@@ -30,10 +31,12 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "tsc",
+    "build": "npm run tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
-    "tsc": "tsc"
+    "tsc-esnext": "tsc -p ./tsconfig.esnext.json && echo '{\"type\": \"module\"}' > ./lib/esnext/package.json",
+    "tsc-cjs": "tsc && npm run tsc-esnext",
+    "tsc": "npm run tsc-cjs && npm run tsc-esnext"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
